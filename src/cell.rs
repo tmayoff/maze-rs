@@ -3,7 +3,7 @@ use bitflags::bitflags;
 use std::collections::HashMap;
 
 pub const CELL_COLOR: Color = Color::WHITE;
-pub const VISTITED_CELL_COLOR: Color = Color::Rgba {
+pub const VISIITED_CELL_COLOR: Color = Color::Rgba {
     red: 0.9,
     green: 0.9,
     blue: 0.9,
@@ -58,7 +58,17 @@ impl Cell {
     pub fn visit_cell(cell_entity: Entity, query: &mut Query<(&mut Sprite, &mut Cell)>) {
         let (mut sprite, mut cell) = query.get_mut(cell_entity).unwrap();
         cell.visited = true;
-        sprite.color = VISTITED_CELL_COLOR;
+        sprite.color = VISIITED_CELL_COLOR;
+    }
+
+    pub fn mark_current(cell_entity: Entity, query: &mut Query<(&mut Sprite, &mut Cell)>) {
+        let (mut sprite, _) = query.get_mut(cell_entity).unwrap();
+        sprite.color = Color::BLUE;
+    }
+
+    pub fn unmark_current(cell_entity: Entity, query: &mut Query<(&mut Sprite, &mut Cell)>) {
+        let (mut sprite, _) = query.get_mut(cell_entity).unwrap();
+        sprite.color = VISIITED_CELL_COLOR;
     }
 
     pub fn remove_wall(
@@ -72,7 +82,12 @@ impl Cell {
         wall_query
             .get_mut(*cell.wall_sprites.get(&wall).unwrap())
             .unwrap()
-            .color = Color::WHITE;
+            .color = Color::Rgba {
+            red: 1.0,
+            green: 1.0,
+            blue: 1.0,
+            alpha: 0.0,
+        };
     }
 }
 

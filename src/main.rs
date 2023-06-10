@@ -30,8 +30,8 @@ fn setup(mut commands: Commands) {
         for col in 0..grid_size.1 {
             let p_pos = (row - (grid_size.0 / 2), col - (grid_size.1 / 2));
             let pos = Vec2::new(
-                p_pos.0 as f32 * (cell_size.0 + wall_thickness),
-                p_pos.1 as f32 * (cell_size.1 + wall_thickness),
+                p_pos.0 as f32 * (cell_size.0),
+                p_pos.1 as f32 * (cell_size.1),
             );
 
             let walls = HashMap::from([
@@ -44,7 +44,7 @@ fn setup(mut commands: Commands) {
                                 ..Default::default()
                             },
                             transform: Transform {
-                                translation: Vec3::new(pos.x, pos.y + (cell_size.0 / 2.0), 0.0),
+                                translation: Vec3::new(pos.x, pos.y + (cell_size.0 / 2.0), 1.0),
                                 scale: Vec3 {
                                     x: cell_size.0,
                                     y: wall_thickness,
@@ -65,7 +65,7 @@ fn setup(mut commands: Commands) {
                                 ..Default::default()
                             },
                             transform: Transform {
-                                translation: Vec3::new(pos.x, pos.y - (cell_size.0 / 2.0), 0.0),
+                                translation: Vec3::new(pos.x, pos.y - (cell_size.0 / 2.0), 1.0),
                                 scale: Vec3 {
                                     x: cell_size.0,
                                     y: wall_thickness,
@@ -86,7 +86,7 @@ fn setup(mut commands: Commands) {
                                 ..Default::default()
                             },
                             transform: Transform {
-                                translation: Vec3::new(pos.x - (cell_size.0 / 2.0), pos.y, 0.0),
+                                translation: Vec3::new(pos.x - (cell_size.0 / 2.0), pos.y, 1.0),
                                 scale: Vec3 {
                                     x: wall_thickness,
                                     y: cell_size.0,
@@ -107,7 +107,7 @@ fn setup(mut commands: Commands) {
                                 ..Default::default()
                             },
                             transform: Transform {
-                                translation: Vec3::new(pos.x + (cell_size.0 / 2.0), pos.y, 0.0),
+                                translation: Vec3::new(pos.x + (cell_size.0 / 2.0), pos.y, 1.0),
                                 scale: Vec3 {
                                     x: wall_thickness,
                                     y: cell_size.0,
@@ -171,10 +171,15 @@ fn run_build_maze(
         return;
     }
 
+    let e = grid.cells[generator.current_cell.0 as usize][generator.current_cell.1 as usize];
+    Cell::unmark_current(e, &mut cell_query);
+
     let current_cell_entity = generator.stack.pop().unwrap();
     let (_, current_cell) = cell_query.get_mut(current_cell_entity).unwrap();
     let current_cell = current_cell.to_owned();
     Cell::visit_cell(current_cell_entity, &mut cell_query);
+    Cell::mark_current(current_cell_entity, &mut cell_query);
+    generator.current_cell = current_cell.pos;
 
     let neighbours = grid.get_cell_neighbour_entities(current_cell.pos.0, current_cell.pos.1);
 
