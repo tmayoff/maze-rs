@@ -12,7 +12,7 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .add_system(run_build_maze.in_schedule(CoreSchedule::FixedUpdate))
-        .insert_resource(FixedTime::new_from_secs(0.1))
+        .insert_resource(FixedTime::new_from_secs(0.01))
         .run();
 }
 
@@ -163,7 +163,7 @@ fn run_build_maze(
     mut generator_query: Query<&mut Generator>,
     mut cell_query: Query<(&mut Sprite, &mut Cell)>,
     mut wall_query: Query<&mut Sprite, Without<Cell>>,
-    _: Res<FixedTime>,
+    //    _: Res<FixedTime>,
 ) {
     let grid = grid_query.single_mut();
     let mut generator = generator_query.single_mut();
