@@ -1,161 +1,27 @@
 mod cell;
 mod grid;
+mod ui;
 
 use bevy::prelude::*;
-use cell::{Cell, CellBundle, Walls, CELL_COLOR};
+use cell::Cell;
 use grid::{Generator, Grid};
 use rand::seq::SliceRandom;
-use std::collections::HashMap;
+use ui::UI;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
         .add_system(run_build_maze.in_schedule(CoreSchedule::FixedUpdate))
-        .insert_resource(FixedTime::new_from_secs(0.1))
+        .insert_resource(FixedTime::new_from_secs(0.01))
         .run();
 }
 
 fn setup(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
 
-    let grid_size = (20, 20);
-    let cell_size = (20.0, 20.0);
-    let wall_thickness = 2.0;
-    let mut cells = Vec::new();
-
-    for row in 0..grid_size.0 {
-        let mut cells_row = Vec::new();
-
-        for col in 0..grid_size.1 {
-            let p_pos = (row - (grid_size.0 / 2), col - (grid_size.1 / 2));
-            let pos = Vec2::new(
-                p_pos.0 as f32 * (cell_size.0),
-                p_pos.1 as f32 * (cell_size.1),
-            );
-
-            let walls = HashMap::from([
-                (
-                    Walls::TOP,
-                    commands
-                        .spawn(SpriteBundle {
-                            sprite: Sprite {
-                                color: Color::BLACK,
-                                ..Default::default()
-                            },
-                            transform: Transform {
-                                translation: Vec3::new(pos.x, pos.y + (cell_size.0 / 2.0), 1.0),
-                                scale: Vec3 {
-                                    x: cell_size.0,
-                                    y: wall_thickness,
-                                    z: 1.0,
-                                },
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        })
-                        .id(),
-                ),
-                (
-                    Walls::BOTTOM,
-                    commands
-                        .spawn(SpriteBundle {
-                            sprite: Sprite {
-                                color: Color::BLACK,
-                                ..Default::default()
-                            },
-                            transform: Transform {
-                                translation: Vec3::new(pos.x, pos.y - (cell_size.0 / 2.0), 1.0),
-                                scale: Vec3 {
-                                    x: cell_size.0,
-                                    y: wall_thickness,
-                                    z: 1.0,
-                                },
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        })
-                        .id(),
-                ),
-                (
-                    Walls::LEFT,
-                    commands
-                        .spawn(SpriteBundle {
-                            sprite: Sprite {
-                                color: Color::BLACK,
-                                ..Default::default()
-                            },
-                            transform: Transform {
-                                translation: Vec3::new(pos.x - (cell_size.0 / 2.0), pos.y, 1.0),
-                                scale: Vec3 {
-                                    x: wall_thickness,
-                                    y: cell_size.0,
-                                    z: 1.0,
-                                },
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        })
-                        .id(),
-                ),
-                (
-                    Walls::RIGHT,
-                    commands
-                        .spawn(SpriteBundle {
-                            sprite: Sprite {
-                                color: Color::BLACK,
-                                ..Default::default()
-                            },
-                            transform: Transform {
-                                translation: Vec3::new(pos.x + (cell_size.0 / 2.0), pos.y, 1.0),
-                                scale: Vec3 {
-                                    x: wall_thickness,
-                                    y: cell_size.0,
-                                    z: 1.0,
-                                },
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        })
-                        .id(),
-                ),
-            ]);
-
-            let id = commands
-                .spawn(CellBundle {
-                    cell: Cell::new((row, col), walls),
-                    sprite: SpriteBundle {
-                        sprite: Sprite {
-                            color: CELL_COLOR,
-                            ..Default::default()
-                        },
-                        transform: Transform {
-                            translation: pos.extend(0.0),
-                            scale: Vec3 {
-                                x: cell_size.0,
-                                y: cell_size.1,
-                                z: 1.0,
-                            },
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    },
-                })
-                .id();
-            cells_row.push(id);
-        }
-
-        cells.push(cells_row);
-    }
-
-    let g = Grid {
-        size: grid_size,
-        cell_size,
-        wall_thickness,
-        cells,
-    };
-    commands.spawn(Generator::new(&g));
-    commands.spawn(g);
+    UI::generate(&mut commands);
+    Grid::generate(&mut commands);
 }
 
 fn run_build_maze(
@@ -163,7 +29,6 @@ fn run_build_maze(
     mut generator_query: Query<&mut Generator>,
     mut cell_query: Query<(&mut Sprite, &mut Cell)>,
     mut wall_query: Query<&mut Sprite, Without<Cell>>,
-    _: Res<FixedTime>,
 ) {
     let grid = grid_query.single_mut();
     let mut generator = generator_query.single_mut();
